@@ -15,8 +15,32 @@ class Settings(BaseSettings):
     # API
     API_V1_STR: str = "/api/v1"
 
-    # Database
-    DATABASE_URL: str = "sqlite+aiosqlite:///./meeting_assistant.db"
+    # Database Configuration
+    # Options: sqlite, postgresql
+    DATABASE_TYPE: str = "sqlite"
+
+    # SQLite (default)
+    SQLITE_DB_PATH: str = "./meeting_assistant.db"
+
+    # PostgreSQL
+    POSTGRES_HOST: str = "localhost"
+    POSTGRES_PORT: int = 5432
+    POSTGRES_USER: str = "postgres"
+    POSTGRES_PASSWORD: str = "postgres"
+    POSTGRES_DB: str = "meeting_assistant"
+    POSTGRES_POOL_SIZE: int = 5
+    POSTGRES_MAX_OVERFLOW: int = 10
+
+    @property
+    def DATABASE_URL(self) -> str:
+        """Generate database URL based on DATABASE_TYPE."""
+        if self.DATABASE_TYPE == "postgresql":
+            return (
+                f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
+                f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+            )
+        else:  # sqlite
+            return f"sqlite+aiosqlite:///{self.SQLITE_DB_PATH}"
 
     # File Upload
     UPLOAD_DIR: Path = Path("uploads")
@@ -24,7 +48,7 @@ class Settings(BaseSettings):
     ALLOWED_AUDIO_EXTENSIONS: set = {".mp3", ".wav", ".m4a", ".flac", ".ogg"}
 
     # External APIs
-    ZHIPU_API_KEY: str = "232cb49079384ffab6053c98abb8f301.5OSqsh8KF3687sEU"
+    ZHIPU_API_KEY: str = "dc27759f5b5a4107b6af67aaf60e4a23.DmhTXSW9nk0eL74y"
     SEPARATION_API_KEY: str = ""
     SEPARATION_API_URL: str = "http://192.168.0.100:40901/recognize"  # Example local URL
     ASR_API_KEY: str = ""  # API key for ASR service (e.g., OpenAI Whisper, iFLYTEK)

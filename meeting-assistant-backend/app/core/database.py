@@ -2,13 +2,31 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base
 from app.core.config import settings
+import logging
 
-# Create async engine for SQLite
+logger = logging.getLogger(__name__)
+
+# Prepare engine arguments based on database type
+if settings.DATABASE_TYPE == "postgresql":
+    engine_args = {
+        "echo": settings.DEBUG,
+        "future": True,
+        "pool_size": settings.POSTGRES_POOL_SIZE,
+        "max_overflow": settings.POSTGRES_MAX_OVERFLOW,
+    }
+    logger.info(f"Using PostgreSQL database: {settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}")
+else:  # sqlite
+    engine_args = {
+        "echo": settings.DEBUG,
+        "future": True,
+        "connect_args": {"check_same_thread": False}
+    }
+    logger.info(f"Using SQLite database: {settings.SQLITE_DB_PATH}")
+
+# Create async engine
 engine = create_async_engine(
     settings.DATABASE_URL,
-    echo=settings.DEBUG,
-    future=True,
-    connect_args={"check_same_thread": False}
+    **engine_args
 )
 
 # Async session factory
@@ -39,5 +57,7 @@ async def get_db() -> AsyncSession:
 
 async def init_db():
     """Initialize database tables."""
+    logger.info("Initializing database tables...")
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    logger.info("Database tables initialized successfully")

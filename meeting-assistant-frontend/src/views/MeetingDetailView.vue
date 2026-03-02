@@ -330,6 +330,16 @@ watch(() => store.currentMeeting?.status, (newStatus) => {
                           <span class="text-xs font-sans text-espresso-600 truncate max-w-[120px]">
                             {{ getParticipantById(segment.participant_id || segment.speaker_id)?.display_name || segment.speaker_id }}
                           </span>
+                          <!-- Edit button -->
+                          <button
+                            @click="editingSpeaker = segment.speaker_id; editingSpeakerName = getParticipantById(segment.participant_id || segment.speaker_id)?.display_name || segment.speaker_id"
+                            class="p-0.5 text-espresso-400 hover:text-espresso-600 opacity-0 group-hover:opacity-100 transition-all"
+                            title="编辑人名"
+                          >
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                          </button>
                         </div>
 
                         <!-- Editing state for speaker name -->

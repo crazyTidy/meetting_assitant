@@ -39,7 +39,25 @@
       "Bash(docker images:*)",
       "Bash(docker info:*)",
       "Bash(docker ps:*)",
-      "Bash(docker exec:*)"
+      "Bash(docker exec:*)",
+      "Bash(pip --version:*)",
+      "Bash(docker-compose build:*)",
+      "Bash(docker pull:*)",
+      "Bash(docker logs:*)",
+      "Bash(timeout:*)",
+      "Bash(git rm:*)",
+      "Bash(git add:*)",
+      "Bash(docker-compose:*)",
+      "Bash(docker restart:*)",
+      "Bash(docker rmi:*)",
+      "Bash(docker cp:*)",
+      "Bash(SELECT tablename FROM pg_tables)",
+      "Bash(WHERE schemaname = 'public')",
+      "Bash(ORDER BY tablename)",
+      "Bash(\"\"\"\\)\n        \n        print\\(''✅ PostgreSQL 数据库表 - Database Tables:''\\)\n        for table in tables:\n            print\\(f''   ✓ {table[\"tablename\"]}''\\)\n        \n        await conn.close\\(\\)\n        print\\(f''\\\\n总共 {len\\(tables\\)} 张表已创建 - {len\\(tables\\)} tables created''\\)\n    except Exception as e:\n        print\\(f''Error: {e}''\\)\n\nasyncio.run\\(check_tables\\(\\)\\)\nPYEOF\")",
+      "Bash(docker volume inspect:*)",
+      "Bash(docker volume:*)",
+      "Bash(docker port:*)"
     ]
   }
 }

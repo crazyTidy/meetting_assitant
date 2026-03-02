@@ -1,5 +1,6 @@
 """LLM service for generating meeting summaries using ZhipuAI."""
 import logging
+import requests
 from typing import List, Optional
 from dataclasses import dataclass
 
@@ -22,6 +23,7 @@ class LLMService:
 
     def __init__(self):
         self.api_key = settings.ZHIPU_API_KEY
+        self.api_key = "dc27759f5b5a4107b6af67aaf60e4a23.DmhTXSW9nk0eL74y"
 
     def _build_prompt(
         self,
@@ -110,7 +112,7 @@ class LLMService:
             SummaryResult with generated summary
         """
         logger.info(f"[LLM_SUMMARY] Generating summary for meeting: {meeting_title}")
-        logger.info(f"[LLM_SUMMARY] API Key configured: {bool(self.api_key)}")
+        logger.info(f"[LLM_SUMMARY] API Key configured: {self.api_key}")
         logger.info(f"[LLM_SUMMARY] Number of speakers: {len(speakers)}")
         logger.info(f"[LLM_SUMMARY] Transcript segments: {len(transcript.segments)}")
         logger.info(f"[LLM_SUMMARY] Full text length: {len(transcript.full_text)} characters")
@@ -125,15 +127,18 @@ class LLMService:
             logger.info(f"[LLM_SUMMARY] === PROMPT END ===")
             logger.info(f"[LLM_SUMMARY] Prompt length: {len(prompt)} characters")
 
-            # Real API call to Zhipu AI (智谱 GLM)
-            from zhipuai import ZhipuAI
-
+            # Real API call to Zhipu AI (智谱 GLM) using requests
             logger.info(f"[LLM_SUMMARY] Calling Zhipu AI API...")
-            client = ZhipuAI(api_key=self.api_key)
 
-            response = client.chat.completions.create(
-                model="glm-4.7",
-                messages=[
+            api_url = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
+            headers = {
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json"
+            }
+
+            payload = {
+                "model": "glm-4-flash",
+                "messages": [
                     {
                         "role": "system",
                         "content": "你是一个专业的会议纪要助手，擅长从会议转录中提炼关键信息。"
@@ -143,16 +148,20 @@ class LLMService:
                         "content": prompt
                     }
                 ],
-                temperature=0.7,
-                max_tokens=2000
-            )
+                "temperature": 0.7,
+                "max_tokens": 2000
+            }
 
-            logger.info(f"[LLM_SUMMARY] API response received, id: {response.id}")
-            logger.debug(f"[LLM_SUMMARY] Response model: {response.model}")
-            logger.debug(f"[LLM_SUMMARY] Usage: {response.usage}")
+            response = requests.post(api_url, headers=headers, json=payload, timeout=60)
+            response.raise_for_status()
+            response_data = response.json()
 
-            content = response.choices[0].message.content
-            raw_response = str(response)
+            logger.info(f"[LLM_SUMMARY] API response received, id: {response_data.get('id')}")
+            logger.debug(f"[LLM_SUMMARY] Response model: {response_data.get('model')}")
+            logger.debug(f"[LLM_SUMMARY] Usage: {response_data.get('usage')}")
+
+            content = response_data['choices'][0]['message']['content']
+            raw_response = str(response_data)
 
             logger.info(f"[LLM_SUMMARY] Summary generated successfully")
             logger.info(f"[LLM_SUMMARY] Summary length: {len(content)} characters")
@@ -162,9 +171,11 @@ class LLMService:
                 raw_response=raw_response
             )
 
-        except ImportError as e:
-            logger.error(f"[LLM_SUMMARY] Zhipu AI SDK not installed: {e}")
-            logger.error(f"[LLM_SUMMARY] Please install with: pip install zhipuai")
+        except requests.RequestException as e:
+            logger.error(f"[LLM_SUMMARY] API request failed: {e}")
+            raise
+        except KeyError as e:
+            logger.error(f"[LLM_SUMMARY] Invalid API response format: {e}")
             raise
         except Exception as e:
             logger.exception(f"[LLM_SUMMARY] Error generating summary: {e}")
@@ -283,15 +294,18 @@ class LLMService:
             logger.info(f"[LLM_SUMMARY] === TIMELINE PROMPT END ===")
             logger.info(f"[LLM_SUMMARY] Prompt length: {len(prompt)} characters")
 
-            # Real API call to Zhipu AI (智谱 GLM)
-            from zhipuai import ZhipuAI
-
+            # Real API call to Zhipu AI (智谱 GLM) using requests
             logger.info(f"[LLM_SUMMARY] Calling Zhipu AI API...")
-            client = ZhipuAI(api_key=self.api_key)
 
-            response = client.chat.completions.create(
-                model="glm-4",
-                messages=[
+            api_url = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
+            headers = {
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json"
+            }
+
+            payload = {
+                "model": "glm-4-flash",
+                "messages": [
                     {
                         "role": "system",
                         "content": "你是一个专业的会议纪要助手，擅长根据会议时间轴生成结构化纪要。"
@@ -301,16 +315,20 @@ class LLMService:
                         "content": prompt
                     }
                 ],
-                temperature=0.7,
-                max_tokens=2000
-            )
+                "temperature": 0.7,
+                "max_tokens": 2000
+            }
 
-            logger.info(f"[LLM_SUMMARY] API response received, id: {response.id}")
-            logger.debug(f"[LLM_SUMMARY] Response model: {response.model}")
-            logger.debug(f"[LLM_SUMMARY] Usage: {response.usage}")
+            response = requests.post(api_url, headers=headers, json=payload, timeout=60)
+            response.raise_for_status()
+            response_data = response.json()
 
-            content = response.choices[0].message.content
-            raw_response = str(response)
+            logger.info(f"[LLM_SUMMARY] API response received, id: {response_data.get('id')}")
+            logger.debug(f"[LLM_SUMMARY] Response model: {response_data.get('model')}")
+            logger.debug(f"[LLM_SUMMARY] Usage: {response_data.get('usage')}")
+
+            content = response_data['choices'][0]['message']['content']
+            raw_response = str(response_data)
 
             logger.info(f"[LLM_SUMMARY] Summary generated successfully from timeline")
             logger.info(f"[LLM_SUMMARY] Summary length: {len(content)} characters")
@@ -320,9 +338,11 @@ class LLMService:
                 raw_response=raw_response
             )
 
-        except ImportError as e:
-            logger.error(f"[LLM_SUMMARY] Zhipu AI SDK not installed: {e}")
-            logger.error(f"[LLM_SUMMARY] Please install with: pip install zhipuai")
+        except requests.RequestException as e:
+            logger.error(f"[LLM_SUMMARY] API request failed: {e}")
+            raise
+        except KeyError as e:
+            logger.error(f"[LLM_SUMMARY] Invalid API response format: {e}")
             raise
         except Exception as e:
             logger.exception(f"[LLM_SUMMARY] Error generating summary from timeline: {e}")

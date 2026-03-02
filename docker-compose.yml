@@ -1,6 +1,29 @@
 version: '3.8'
 
 services:
+  # PostgreSQL Database (optional - use when DATABASE_TYPE=postgresql)
+  postgres:
+    image: postgres:16-alpine
+    container_name: meeting-postgres
+    ports:
+      - "5432:5432"  # 映射端口到宿主机 - Map port to host
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-meeting_assistant}
+    volumes:
+      - ../postgres-data:/var/lib/postgresql/data
+    networks:
+      - meeting-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    profiles:
+      - postgres  # Only start when explicitly enabled
+
   backend:
     build:
       context: ./meeting-assistant-backend
@@ -11,14 +34,25 @@ services:
     environment:
       - APP_NAME=Meeting Assistant
       - DEBUG=false
-      - DATABASE_URL=sqlite+aiosqlite:///./meeting_assistant.db
+      # Database Configuration
+      - DATABASE_TYPE=${DATABASE_TYPE:-sqlite}
+      - SQLITE_DB_PATH=${SQLITE_DB_PATH:-./meeting_assistant.db}
+      - POSTGRES_HOST=${POSTGRES_HOST:-postgres}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-meeting_assistant}
+      - POSTGRES_POOL_SIZE=${POSTGRES_POOL_SIZE:-5}
+      - POSTGRES_MAX_OVERFLOW=${POSTGRES_MAX_OVERFLOW:-10}
+      # File Upload
       - UPLOAD_DIR=uploads
       - MAX_UPLOAD_SIZE=104857600
+      # External APIs
       - ZHIPU_API_KEY=${ZHIPU_API_KEY}
       - SEPARATION_API_KEY=${SEPARATION_API_KEY}
       - SEPARATION_API_URL=${SEPARATION_API_URL}
     volumes:
-      - backend-data:/app/uploads
+      - backend-uploads:/app/uploads
       - backend-db:/app
     networks:
       - meeting-network
@@ -44,9 +78,11 @@ services:
     restart: unless-stopped
 
 volumes:
-  backend-data:
+  backend-uploads:
     driver: local
   backend-db:
+    driver: local
+  postgres-data:
     driver: local
 
 networks:
