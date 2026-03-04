@@ -22,7 +22,12 @@ class WhisperXTranscriber:
             "那我们就这样定了，大家还有其他意见吗",
             "这部分我负责跟进",
             "请问大家还有什么问题吗",
-            "今天的会议就到这里，谢谢大家参与"
+            "今天的会议就到这里，谢谢大家参与",
+            "让我补充一点关于这个功能的想法",
+            "时间差不多，我们可以做个总结",
+            "这个设计思路很不错",
+            "我们需要考虑用户体验",
+            "技术实现上有什么难点吗"
         ],
         "en": [
             "Hello everyone, let's discuss the new product design today",
@@ -52,16 +57,19 @@ class WhisperXTranscriber:
         # 模拟处理延迟
         self.processing_delay = 2.0  # 秒
 
+        logger.info(f"🎙️  WhisperXTranscriber 实例化完成 (会议: {meeting_id}, 语言: {language})")
+
     async def initialize(self):
         """Initialize mock transcriber."""
         if self.is_initialized:
+            logger.info(f"⏭️  转录器已初始化，跳过 (会议: {self.meeting_id})")
             return
 
-        logger.info(f"Initializing mock transcriber for meeting {self.meeting_id}")
+        logger.info(f"🔧 开始初始化模拟转录服务...")
         # 模拟初始化延迟
         await asyncio_sleep(0.1)
         self.is_initialized = True
-        logger.info(f"Mock transcriber initialized for meeting {self.meeting_id}")
+        logger.info(f"✅ 模拟转录服务初始化完成 (会议: {self.meeting_id})")
 
     async def process_audio(self, audio_data: bytes) -> Optional[Dict[str, Any]]:
         """Process audio chunk and return mock transcription result.
@@ -76,7 +84,7 @@ class WhisperXTranscriber:
             await self.initialize()
 
         # 模拟处理时间
-        await asyncio_sleep(0.1)
+        await asyncio_sleep(0.01)
 
         # 每处理几次音频返回一个模拟转录结果
         self.segment_count += 1
@@ -88,30 +96,42 @@ class WhisperXTranscriber:
             # 随机选择说话人（每3次切换一次）
             if self.segment_count % 15 == 0:
                 self.current_speaker = (self.current_speaker + 1) % 3
+                logger.info(f"🔄 切换说话人: SPEAKER_0{self.current_speaker}")
 
             # 随机选择文本
             texts = self.MOCK_TEXTS.get(self.language, self.MOCK_TEXTS["zh"])
             text = random.choice(texts)
 
-            return {
+            result = {
                 "speaker": f"SPEAKER_0{self.current_speaker}",
                 "text": text,
                 "start_time": round(elapsed_time - 3, 2),
                 "end_time": round(elapsed_time, 2)
             }
 
+            logger.info(f"📝 [模拟转录] 片段 #{self.segment_count // 5}")
+            logger.info(f"   说话人: {result['speaker']}")
+            logger.info(f"   内容: {result['text']}")
+            logger.info(f"   时间: {result['start_time']}s - {result['end_time']}s")
+
+            return result
+
+        # 每10次打印一次进度
+        if self.segment_count % 10 == 0:
+            logger.info(f"⏳ 已处理 {self.segment_count} 个音频块，等待累积...")
+
         return None
 
     async def finalize(self) -> list:
         """Finalize transcription and return any remaining segments."""
-        logger.info(f"Finalizing mock transcription for meeting {self.meeting_id}")
+        logger.info(f"🏁 完成会议转录，处理了 {self.segment_count} 个音频块")
         return []
 
     async def cleanup(self):
         """Cleanup resources."""
+        logger.info(f"🧹 清理转录器资源 (会议: {self.meeting_id})")
         self.segment_count = 0
         self.current_speaker = 0
-        logger.info(f"Mock transcriber cleaned up for meeting {self.meeting_id}")
 
 
 # Helper function for async sleep

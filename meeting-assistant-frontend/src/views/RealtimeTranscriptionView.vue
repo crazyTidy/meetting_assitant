@@ -92,6 +92,15 @@ function stopSession() {
   }
   isConnected.value = false
   isRecording.value = false
+
+  // 等待一小段时间后跳转到会议详情页
+  if (meetingId.value) {
+    setTimeout(() => {
+      router.push(`/meetings/${meetingId.value}`)
+    }, 500)
+  } else {
+    router.push('/meetings')
+  }
 }
 </script>
 

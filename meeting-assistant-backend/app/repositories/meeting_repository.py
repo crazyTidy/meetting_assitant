@@ -8,6 +8,7 @@ from app.models.meeting import Meeting, MeetingStatus, ProcessingStage
 from app.models.participant import Participant
 from app.models.summary import Summary
 from app.models.speaker_segment import SpeakerSegment
+from app.models.real_time_segment import RealTimeSegment
 
 
 class MeetingRepository:
@@ -48,13 +49,14 @@ class MeetingRepository:
         db: AsyncSession,
         meeting_id: str
     ) -> Optional[Meeting]:
-        """Get meeting with participants, speaker segments, merged segments, and summary."""
+        """Get meeting with participants, speaker segments, merged segments, real-time segments, and summary."""
         result = await db.execute(
             select(Meeting)
             .options(
                 selectinload(Meeting.participants),
                 selectinload(Meeting.speaker_segments),
                 selectinload(Meeting.merged_segments),
+                selectinload(Meeting.real_time_segments),
                 selectinload(Meeting.summary)
             )
             .where(Meeting.id == meeting_id)

@@ -65,6 +65,21 @@ class MergedSegmentResponse(BaseModel):
         from_attributes = True
 
 
+# Real-Time Segment Schemas
+class RealTimeSegmentResponse(BaseModel):
+    """Schema for real-time segment response."""
+    id: str
+    speaker_id: str
+    text: str
+    start_time: float
+    end_time: float
+    is_final: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 # Summary Schemas
 class SummaryBase(BaseModel):
     """Base summary schema."""
@@ -107,6 +122,7 @@ class MeetingDetailResponse(MeetingResponse):
     participants: List[ParticipantResponse] = []
     speaker_segments: List[SpeakerSegmentResponse] = []
     merged_segments: List[MergedSegmentResponse] = []
+    real_time_segments: List[RealTimeSegmentResponse] = []
     summary: Optional[SummaryResponse] = None
     error_message: Optional[str] = None
 
